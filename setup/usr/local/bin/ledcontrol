@@ -1,0 +1,67 @@
+#!/bin/bash
+# +----------------------------------------------------------------------+
+# | Issabel version 4.0                                                  |
+# | http://www.issabel.org                                               |
+# +----------------------------------------------------------------------+
+# | Copyright (c) 2018 Issabel Foundation                                |
+# +----------------------------------------------------------------------+
+# | The contents of this file are subject to the General Public License  |
+# | (GPL) Version 2 (the "License"); you may not use this file except in |
+# | compliance with the License. You may obtain a copy of the License at |
+# | http://www.opensource.org/licenses/gpl-license.php                   |
+# |                                                                      |
+# | Software distributed under the License is distributed on an "AS IS"  |
+# | basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See  |
+# | the License for the specific language governing rights and           |
+# | limitations under the License.                                       |
+# +----------------------------------------------------------------------+
+# $Id: ledcontrol, Sat 01 Dec 2018 04:11:09 PM EST, nicolas@issabel.com
+
+function set_drive_bus {
+    # returns bus for storage, either USB or SD
+    local BUS=''
+    udevadm info --query=all --name=$1 | grep ID_BUS | grep usb >/dev/null
+    if [ $? -eq 0 ]; then
+        BUS='usb'
+    else
+        udevadm info --query=all --name=$1 | grep ID_PATH_TAG | grep _sd >/dev/null
+        if [ $? -eq 0 ]; then
+            BUS='sd'
+        fi
+    fi
+    echo "$BUS"
+}
+
+if [ ! -e /dev/reset ]; then
+    exit 1
+fi
+
+if [ $1 = "USBON" ]; then
+    echo "USBON" >/dev/reset
+fi
+
+if [ $1 = "USBOFF" ]; then
+    echo "USBOFF" >/dev/reset
+fi
+
+if [ $1 = "TFON" ]; then
+    echo "TFON" >/dev/reset
+fi
+
+if [ $1 = "TFOFF" ]; then
+    echo "TFOFF" >/dev/reset
+fi
+
+if [ $1 = "check" ]; then
+
+    lsblk -l | grep '^sda' >/dev/null
+    if [ $? -eq 0 ]; then
+        echo "USBON" >/dev/reset
+    fi
+
+    lsblk -l | grep '^mmcblk0' >/dev/null
+    if [ $? -eq 0 ]; then
+        echo "TFON" >/dev/reset
+    fi
+
+fi
